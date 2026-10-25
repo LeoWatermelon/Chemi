@@ -1,0 +1,37 @@
+(()=>{'use strict';
+const node=(symbol,x,y,fixed=false)=>({symbol,x,y,fixed});
+const left=()=>[node('C',90,250,true),node('C',210,250,true)],right=()=>[node('C',530,250,true),node('C',650,250,true)];
+const cases=[
+{name:'alkene',nodes:[...left(),...right(),node('C',315,250),node('C',425,250)],edges:[[0,1,1],[2,3,1],[1,4,1],[4,5,2],[5,2,1]]},
+{name:'alkyne',nodes:[...left(),...right(),node('C',315,250),node('C',425,250)],edges:[[0,1,1],[2,3,1],[1,4,1],[4,5,3],[5,2,1]]},
+{name:'ketone',nodes:[...left(),...right(),node('C',370,250),node('O',370,100)],edges:[[0,1,1],[2,3,1],[1,4,1],[4,2,1],[4,5,2]]},
+{name:'alcohol',nodes:[...left(),node('O',350,250),node('H',470,250)],edges:[[0,1,1],[1,2,1],[2,3,1]]},
+{name:'primary amine',nodes:[...left(),node('N',350,250),node('H',460,170),node('H',460,330)],edges:[[0,1,1],[1,2,1],[2,3,1],[2,4,1]]},
+{name:'aldehyde',nodes:[...left(),node('C',350,250),node('O',350,100),node('H',490,250)],edges:[[0,1,1],[1,2,1],[2,3,2],[2,4,1]]},
+{name:'carboxylic acid',nodes:[...left(),node('C',340,250),node('O',340,100),node('O',470,250),node('H',590,250)],edges:[[0,1,1],[1,2,1],[2,3,2],[2,4,1],[4,5,1]]},
+{name:'ester',nodes:[...left(),...right(),node('C',315,250),node('O',315,100),node('O',425,250)],edges:[[0,1,1],[2,3,1],[1,4,1],[4,5,2],[4,6,1],[6,2,1]]},
+{name:'primary amide',nodes:[...left(),node('C',340,250),node('O',340,100),node('N',470,250),node('H',580,175),node('H',580,325)],edges:[[0,1,1],[1,2,1],[2,3,2],[2,4,1],[4,5,1],[4,6,1]]},
+{name:'ether',nodes:[...left(),...right(),node('O',370,250)],edges:[[0,1,1],[2,3,1],[1,4,1],[4,2,1]]}
+];
+const key=(a,b)=>[a,b].sort((a,b)=>a-b).join(',');
+class Builder{
+ constructor(random=Math.random){this.random=random;this.index=-1;this.next();}get target(){return cases[this.index];}
+ next(){let i=Math.floor(this.random()*(cases.length-(this.index>=0?1:0)));if(this.index>=0&&i>=this.index)i++;this.index=i;this.mirror=this.random()<.5;this.reset();}
+ reset(){this.atoms=this.target.nodes.map(n=>n.fixed?n.symbol:null);this.bonds={};for(const [a,b,n] of this.target.edges)if(this.target.nodes[a].fixed&&this.target.nodes[b].fixed)this.bonds[key(a,b)]=n;this.history=[];this.source=null;this.solved=false;}
+ save(){this.history.push({atoms:this.atoms.slice(),bonds:{...this.bonds}});this.solved=false;}
+ fixedBond(a,b){return this.target.edges.some(([x,y])=>key(x,y)===key(a,b)&&this.target.nodes[x].fixed&&this.target.nodes[y].fixed);}
+ put(id,symbol){if(this.target.nodes[id].fixed)return 'The given fragment is fixed.';if(!['C','O','N','H'].includes(symbol))return '';this.save();this.atoms[id]=symbol;this.source=null;return '';}
+ erase(id){if(this.target.nodes[id].fixed)return 'The given fragment is fixed.';this.save();this.atoms[id]=null;for(const k of Object.keys(this.bonds))if(k.split(',').map(Number).includes(id))delete this.bonds[k];this.source=null;return '';}
+ bond(a,b,order){if(a===b)return '';if(this.fixedBond(a,b))return 'The given fragment bond is fixed.';if(!this.atoms[a]||!this.atoms[b])return 'Place both atoms before adding a bond.';this.save();if(order)this.bonds[key(a,b)]=order;else delete this.bonds[key(a,b)];return '';}
+ undo(){const old=this.history.pop();if(old){this.atoms=old.atoms;this.bonds=old.bonds;this.solved=false;}this.source=null;}
+ check(){this.solved=false;if(this.atoms.some(a=>!a))return 'Fill the empty positions with the atoms needed for a '+this.target.name+'.';if(this.atoms.some((a,i)=>a!==this.target.nodes[i].symbol))return 'Check the atom types and their positions in the requested functional group.';const expected=Object.fromEntries(this.target.edges.map(([a,b,n])=>[key(a,b),n]));if(Object.keys(this.bonds).length!==Object.keys(expected).length||Object.keys(expected).some(k=>this.bonds[k]!==expected[k]))return 'Check the connections and bond orders. Every added atom must be attached correctly.';this.solved=true;return 'Correct — the completed fragment contains a '+this.target.name+'.';}
+}
+if(typeof module!=='undefined'&&module.exports)module.exports={cases,Builder,key};if(typeof document==='undefined')return;
+const $=id=>document.getElementById('df-'+id);if(!$('game'))return;const game=new Builder();let tool='C';const tools=['C','O','N','H','1','2','3','erase'];
+function feedback(msg=''){ $('feedback').textContent=msg;$('feedback').hidden=!msg;$('feedback').classList.toggle('success',game.solved);}
+function render(){const nodes=game.target.nodes,px=x=>game.mirror?740-x:x;let svg='<title>Complete the fragment with a '+game.target.name+'</title><desc>Filled green circles are the fixed fragment. Dotted circles are positions for new atoms.</desc>';
+for(const [k,order] of Object.entries(game.bonds)){const [a,b]=k.split(',').map(Number),p=nodes[a],q=nodes[b],dx=px(q.x)-px(p.x),dy=q.y-p.y,len=Math.hypot(dx,dy),ux=dx/len,uy=dy/len;svg+=`<g data-bond="${k}" role="button" tabindex="0" aria-label="${order===1?'Single':order===2?'Double':'Triple'} bond between positions ${a+1} and ${b+1}"><line x1="${px(p.x)}" y1="${p.y}" x2="${px(q.x)}" y2="${q.y}" class="dl-edge-hit"/>`;for(let i=0;i<order;i++){const off=(i-(order-1)/2)*7;svg+=`<line x1="${px(p.x)+27*ux-off*uy}" y1="${p.y+27*uy+off*ux}" x2="${px(q.x)-27*ux-off*uy}" y2="${q.y-27*uy+off*ux}" class="lb-bond"/>`;}svg+='</g>';}
+nodes.forEach((n,i)=>{svg+=`<g data-slot="${i}" class="df-slot ${n.fixed?'fixed':''} ${game.source===i?'active':''}" role="button" tabindex="0" aria-label="Position ${i+1}: ${game.atoms[i]||'empty'}${n.fixed?', fixed fragment':''}" aria-pressed="${game.source===i}"><circle cx="${px(n.x)}" cy="${n.y}" r="27" class="${game.atoms[i]?'filled':'empty'}"/><text x="${px(n.x)}" y="${n.y}" class="${game.atoms[i]?'lb-atom':'dl-plus'}">${game.atoms[i]||'+'}</text></g>`;});$('diagram').innerHTML=svg;$('question').textContent='Complete the molecule with a '+game.target.name;$('undo').disabled=!game.history.length;for(const t of tools)$('tool-'+t).setAttribute('aria-pressed',String(tool===t));$('active').textContent=tool==='erase'?'Erase: choose an added atom or bond.':Number(tool)?(game.source===null?'Choose the first atom for the bond.':'Choose the second atom for the bond.'):'Place '+tool+' at an empty position.';}
+function act(e){const slot=e.target.closest('[data-slot]'),bond=e.target.closest('[data-bond]');let msg='';if(slot){const i=Number(slot.dataset.slot);if(tool==='erase')msg=game.erase(i);else if(Number(tool)){if(!game.atoms[i])msg='Place an atom here first.';else if(game.source===null)game.source=i;else {msg=game.bond(game.source,i,Number(tool));game.source=null;}}else msg=game.put(i,tool);}else if(bond){const [a,b]=bond.dataset.bond.split(',').map(Number);if(tool==='erase')msg=game.bond(a,b,0);else if(Number(tool))msg=game.bond(a,b,Number(tool));}feedback(msg);render();if(e.type==='keydown'&&slot)$('diagram').querySelector('[data-slot="'+slot.dataset.slot+'"]').focus();}
+$('diagram').addEventListener('click',act);$('diagram').addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)){e.preventDefault();act(e);}});for(const t of tools)$('tool-'+t).addEventListener('click',()=>{tool=t;game.source=null;feedback();render();});$('check').addEventListener('click',()=>{feedback(game.check());render();});$('undo').addEventListener('click',()=>{game.undo();feedback();render();});$('reset').addEventListener('click',()=>{game.reset();feedback();render();});$('next').addEventListener('click',()=>{game.next();feedback();render();});render();
+})();

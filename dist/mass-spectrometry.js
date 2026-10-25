@@ -1,0 +1,27 @@
+(()=>{
+'use strict';
+const elements=[{name:'Chlorine',symbol:'Cl',m:[35,37]},{name:'Bromine',symbol:'Br',m:[79,81]},{name:'Boron',symbol:'B',m:[10,11]},{name:'Magnesium',symbol:'Mg',m:[24,25,26]},{name:'Silicon',symbol:'Si',m:[28,29,30]},{name:'Neon',symbol:'Ne',m:[20,21,22]}];
+class Spectrum{
+ constructor(){this.mode='mass';this.index=0;this.p=[75,25];this.target=0;this.kind=0;this.done=false;this.selected=null}
+ get data(){return elements[this.index]}get average(){return this.data.m.reduce((sum,m,i)=>sum+m*this.p[i]/100,0)}
+ next(){this.index=Math.floor(Math.random()*elements.length);const n=this.data.m.length;if(n===2){const a=10+Math.floor(Math.random()*81);this.p=a===50?[45,55]:[a,100-a]}else{do{const a=10+Math.floor(Math.random()*61),b=5+Math.floor(Math.random()*(90-a));this.p=[a,b,100-a-b]}while(new Set(this.p).size!==3)}this.kind=Math.random()<.5?0:1;this.target=this.kind===0?this.p.indexOf(Math.max(...this.p)):Math.floor(Math.random()*n);this.done=false;this.selected=null}
+ choose(i){if(this.done||this.mode!=='read')return false;this.selected=i;if(i===this.target)this.done=true;return this.done}
+ check(raw){if(!raw.trim()||!Number.isFinite(Number(raw)))return 'Enter a number.';if(Math.abs(Number(raw)-this.average)<=.005001){this.done=true;return 'Correct.'}return 'Try again. Multiply each isotope mass by its percentage abundance, add the results, then divide by 100.'}
+}
+if(typeof module!=='undefined'&&module.exports)module.exports={Spectrum,elements};if(typeof document==='undefined')return;const root=document.getElementById('mass-spectrometry-game');if(!root)return;const game=new Spectrum(),el=id=>document.getElementById('ms-'+id);const fmt=n=>Number(n.toFixed(2)).toString();
+function feedback(text,kind=''){el('feedback').hidden=!text;el('feedback').textContent=text;el('feedback').className='of-feedback '+kind}
+function render(){const d=game.data,read=game.mode==='read';el('sample').textContent=d.name;el('question').textContent=read?(game.kind===0?'Select the peak of the most abundant isotope.':'Select the peak with '+game.p[game.target]+'% abundance.'):'Calculate the relative atomic mass of this sample.';el('input-row').hidden=read;el('check').hidden=read;el('check').disabled=game.done;el('show').disabled=game.done;el('answer').disabled=game.done;
+ const left=66,right=650,top=36,bottom=310,min=d.m[0]-1,max=d.m.at(-1)+1,x=m=>left+(m-min)/(max-min)*(right-left),y=p=>bottom-p/100*(bottom-top);
+ let svg='<title>'+d.name+' isotope mass spectrum</title><desc>Percentage abundance against mass-to-charge ratio for singly charged atomic ions.</desc>';
+ for(let p=0;p<=100;p+=20){svg+=`<line x1="${left}" x2="${right}" y1="${y(p)}" y2="${y(p)}" class="ms-grid"/><text x="${left-12}" y="${y(p)+5}" text-anchor="end" class="ms-axis-text">${p}</text>`}
+ svg+=`<path d="M ${left} ${top} V ${bottom} H ${right}" class="ms-axis"/><text x="22" y="185" transform="rotate(-90 22 185)" text-anchor="middle" class="ms-axis-text">Abundance (%)</text><text x="358" y="377" text-anchor="middle" class="ms-axis-text">m/z</text>`;
+ for(let m=min;m<=max;m++){svg+=`<line x1="${x(m)}" x2="${x(m)}" y1="${bottom}" y2="${bottom+6}" class="ms-axis"/><text x="${x(m)}" y="${bottom+26}" text-anchor="middle" class="ms-axis-text">${m}</text>`}
+ d.m.forEach((m,i)=>{const active=game.selected===i;svg+=`<g class="ms-peak${active?' selected':''}" data-peak="${i}" ${read?`role="button" tabindex="${game.done?-1:0}" aria-disabled="${game.done}"`:'role="img"'} aria-label="${d.symbol}-${m}, m/z ${m}, abundance ${game.p[i]} percent"><rect x="${x(m)-26}" y="${y(game.p[i])-25}" width="52" height="${bottom-y(game.p[i])+25}" class="ms-hit"/><line x1="${x(m)}" x2="${x(m)}" y1="${bottom}" y2="${y(game.p[i])}" class="ms-stick"/><text x="${x(m)}" y="${y(game.p[i])-12}" text-anchor="middle" class="ms-peak-label">${game.p[i]}%</text></g>`});el('spectrum').innerHTML=svg;
+}
+function choose(index){if(game.done||game.mode!=='read')return;const correct=game.choose(index);render();feedback(correct?'Correct — '+game.data.symbol+'-'+game.data.m[index]+' has an abundance of '+game.p[index]+'%.':'Try again. Compare the percentage labels above the peaks.',correct?'success':'');if(!correct)el('spectrum').querySelector('[data-peak="'+index+'"]').focus()}
+el('spectrum').addEventListener('click',e=>{const peak=e.target.closest('[data-peak]');if(peak)choose(Number(peak.dataset.peak))});el('spectrum').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const peak=e.target.closest('[data-peak]');if(peak){e.preventDefault();choose(Number(peak.dataset.peak))}}});
+function reset(){el('answer').value='';feedback('');render()}
+el('next').addEventListener('click',()=>{game.next();reset()});function check(){const message=game.check(el('answer').value);render();feedback(message,game.done?'success':'')}
+el('check').addEventListener('click',check);el('answer').addEventListener('keydown',e=>{if(e.key==='Enter'&&!game.done){e.preventDefault();check()}});el('answer').addEventListener('input',()=>feedback(''));
+el('show').addEventListener('click',()=>{game.done=true;const read=game.mode==='read';if(read)game.selected=game.target;else el('answer').value=game.average.toFixed(2);render();feedback(read?game.data.symbol+'-'+game.data.m[game.target]+': m/z '+game.data.m[game.target]+', abundance '+game.p[game.target]+'%.':'Aᵣ = ('+game.data.m.map((m,i)=>m+' × '+game.p[i]).join(' + ')+') ÷ 100 = '+fmt(game.average),'answer')});render();
+})();

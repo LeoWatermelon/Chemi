@@ -1,0 +1,25 @@
+:root{font-family:Arial,Helvetica,sans-serif;color:#243c31;background:#fafbf7}
+*{box-sizing:border-box}
+body{margin:0}
+.wrap{max-width:1220px;margin:auto;padding:24px 36px}
+h1{font-size:32px;font-weight:750;letter-spacing:-1.5px;margin:0 0 30px}
+.topic-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.topic-tab{display:flex;align-items:center;min-height:240px;padding:28px;font-size:23px;font-weight:500;letter-spacing:-.4px;line-height:1.35;border:1px solid #dce3d8;border-radius:12px;color:#243c31;text-decoration:none;background:#fff;transition:transform .18s,border-color .18s,box-shadow .18s}
+.topic-tab:hover{transform:translateY(-3px);border-color:#8eaa7d;box-shadow:0 6px 20px #254a3010}
+.topic-tab[aria-selected="true"]{background:#edf2e6;border-color:#a5b799;color:#244e36}
+.topic-tab:focus-visible{outline:3px solid #8daf66;outline-offset:3px}
+section[hidden]{display:none}
+@media(max-width:760px){.wrap{padding:20px}h1{font-size:28px}.topic-nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.topic-tab{min-height:200px;padding:22px;font-size:20px}}
+@media(max-width:450px){.topic-nav{grid-template-columns:1fr}.topic-tab{min-height:180px;font-size:23px}}
+@media(prefers-reduced-motion:reduce){.topic-tab{transition:none}}
+
+.organic-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.organic-tab{font-family:inherit;text-align:left;cursor:pointer}#organic-chemistry{scroll-margin-top:24px}@media(max-width:760px){.organic-nav{grid-template-columns:1fr}}
+
+[hidden]{display:none!important}.brand-link{color:inherit;text-decoration:none}header .wrap{padding-bottom:0}header h1{margin-bottom:0}#page-heading{margin-bottom:26px}.page-back{display:inline-block;padding:10px 15px;border:1px solid #dce3d8;border-radius:7px;background:#fff;color:#365b3e;text-decoration:none;font-size:14px;min-height:42px}#page-title{font-size:29px;font-weight:500;letter-spacing:-.7px;margin:22px 0 0;line-height:1.3}.reaction-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.route-page{min-height:60vh}.route-page .hbr-game{margin-top:0}.brand-link:focus-visible,.page-back:focus-visible{outline:3px solid #8daf66;outline-offset:4px}@media(max-width:760px){.reaction-nav{grid-template-columns:repeat(2,minmax(0,1fr))}#page-title{font-size:25px}}@media(max-width:450px){.reaction-nav{grid-template-columns:1fr}}
+
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px}header .page-back{flex-shrink:0}
+
+/* Shared simulation card layout. Keep new simulation cards in this format. */
+.topic-tab.simulation-card{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;text-align:left;gap:16px;min-height:240px;padding:28px}.simulation-card-title{display:block;font-size:23px;font-weight:500;letter-spacing:-.4px;line-height:1.35}.simulation-card-description{display:block;font-size:14px;font-weight:400;letter-spacing:0;line-height:1.65;color:#60725e}.simulation-card:hover .simulation-card-description{color:#46613f}@media(max-width:760px){.topic-tab.simulation-card{min-height:220px;padding:22px;gap:14px}.simulation-card-title{font-size:20px}}@media(max-width:450px){.topic-tab.simulation-card{min-height:180px}.simulation-card-title{font-size:23px}}
+
+.brand-menu{display:flex;align-items:center;gap:22px;flex-wrap:wrap}.minigame-entrance{display:inline-flex;align-items:center;min-height:40px;padding:9px 16px;border:1px solid #c4d5b7;border-radius:9px;background:#edf4e5;color:#365b3e;text-decoration:none;font-size:14px;font-weight:500;transition:background .15s,border-color .15s}.minigame-entrance:hover{background:#dfeccc;border-color:#8eaa7d}.minigame-entrance:focus-visible{outline:3px solid #8daf66;outline-offset:3px}.minigame-empty{padding:36px;border:1px dashed #c4d5b7;border-radius:12px;background:#f4f8ee;color:#60725e}.minigame-empty p{margin:0;font-size:15px}@media(max-width:450px){.brand-menu{gap:14px}.minigame-entrance{padding:8px 12px}}

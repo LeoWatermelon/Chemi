@@ -1,0 +1,4 @@
+[data-simulation-info]:not([data-info-open="true"]) [data-sim-info]{display:none!important}
+.sim-info-toolbar{display:flex;justify-content:flex-end;margin:0 0 18px}.sim-info-toolbar button{font-size:13px;min-height:38px;padding:8px 15px}.sim-info-toolbar button[aria-expanded="true"]{background:#e4eedb;color:#285842;border-color:#8fa77d}.sim-info-note{margin:20px 0 0;padding:16px 18px;border:1px solid #dce3d8;border-radius:10px;background:#f7faf2;color:#60725e;font-size:13px;line-height:1.7}
+#energy-levels-game:not([data-info-open="true"]) .en-layout{grid-template-columns:1fr}
+#successive-ie-game:not([data-info-open="true"]) .si-panel{padding:18px}
